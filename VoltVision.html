@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VoltVision</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#eef2ec;--panel:#fbfcfa;--ink:#14231c;--mute:#5b6b62;--line:#cfd8cf;--amber:#e8a200;--bad:#c9382b;--ok:#1d8049;--btn:#14231c;--btnink:#fbfcfa;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a15;--panel:#15251e;--ink:#e6efe8;--mute:#93a79b;--line:#27392f;--amber:#f5b81c;--bad:#ff6b5c;--ok:#4cc77f;--btn:#e6efe8;--btnink:#0e1a15;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1a15;--panel:#15251e;--ink:#e6efe8;--mute:#93a79b;--line:#27392f;--amber:#f5b81c;--bad:#ff6b5c;--ok:#4cc77f;--btn:#e6efe8;--btnink:#0e1a15;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Schibsted Grotesk",system-ui,sans-serif;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:28px 28px;background-position:-1px -1px}
+main{max-width:1000px;margin:0 auto;padding:28px 18px 40px}
+h1{font-size:clamp(30px,6vw,52px);line-height:1.05;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+.lede{max-width:56ch;color:var(--mute);margin:0 0 24px}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.stage{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--bg);border:1px dashed var(--line);display:grid;place-items:center;text-align:center;color:var(--mute)}
+.stage img{width:100%;height:100%;object-fit:contain;display:block}
+.scan{position:absolute;left:0;right:0;height:3px;background:var(--amber);box-shadow:0 0 14px var(--amber);top:0;display:none}
+.busy .scan{display:block;animation:s 1.4s ease-in-out infinite alternate}
+@keyframes s{to{top:calc(100% - 3px)}}
+@media(prefers-reduced-motion:reduce){.busy .scan{animation:none;top:50%}}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+button,.pick{font:inherit;cursor:pointer;border-radius:999px;padding:9px 16px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+button:focus-visible,.pick:focus-within{outline:3px solid var(--amber);outline-offset:2px}
+.pick input{position:absolute;opacity:0;width:1px;height:1px}
+#go{width:86px;height:86px;border-radius:50%;background:var(--btn);color:var(--btnink);border:0;font-weight:800;box-shadow:0 5px 0 var(--amber);transition:transform .08s,box-shadow .08s}
+#go:active{transform:translateY(4px);box-shadow:0 1px 0 var(--amber)}
+#go:disabled{opacity:.45;cursor:not-allowed}
+.steps{display:flex;gap:6px;margin:0 0 14px;padding:0;list-style:none;font-size:14px}
+.steps li{flex:1;padding:6px 8px;border-radius:8px;border:1px solid var(--line);color:var(--mute)}
+.steps li.on{border-color:var(--amber);color:var(--ink);font-weight:600}
+.steps li.done{border-color:var(--ok);color:var(--ok)}
+h2{font-size:18px;margin:14px 0 6px}
+ul.l{margin:0;padding-left:18px}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.say{border-left:4px solid var(--amber);padding:8px 12px;margin-top:10px;background:var(--bg);border-radius:0 8px 8px 0}
+.meta{color:var(--mute);font-size:14px;margin-top:10px}
+select,input.k{font:inherit;border-radius:10px;padding:8px 10px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+input.k{flex:1;min-width:160px}
+details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--mute)}
+footer{margin-top:22px;color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>VoltVision</h1>
+<p class="lede">Photograph a breadboard. A vision AI finds wiring faults and tells you the fix out loud, so your hands stay on the circuit.</p>
+<div class="grid">
+ <section class="card" id="left">
+  <div class="stage" id="stage"><span id="ph">Add a breadboard photo or try the sample circuit.</span><div class="scan"></div></div>
+  <div class="row">
+   <label class="pick">Upload photo<input type="file" accept="image/*" id="file"></label>
+   <button id="demo">Use sample circuit</button>
+  </div>
+  <div class="row"><button id="go" disabled aria-label="Inspect circuit">Inspect</button><span class="meta">This button stands in for the ESP32 hardware button.</span></div>
+  <details id="cfg" open><summary>AI settings (runs from your browser, key stays on this device)</summary>
+   <div class="row"><select id="prov" aria-label="Provider"><option value="gemini">Google Gemini (free key)</option><option value="claude">Anthropic Claude</option></select>
+   <input class="k" id="key" type="password" placeholder="Paste API key" autocomplete="off" aria-label="API key"></div>
+  </details>
+ </section>
+ <section class="card" aria-live="polite">
+  <ol class="steps"><li id="s1">Capture</li><li id="s2">Analyze</li><li id="s3">Speak</li></ol>
+  <div id="out"><p class="meta">Results appear here after you press Inspect.</p></div>
+ </section>
+</div>
+<footer>Hardware version: ESP32 button, webcam, Python, vision model, text-to-speech. This page runs the same analyze-and-speak step in the browser.</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let blob=null,t0=0;
+const MODELS={gemini:"gemini-2.5-flash",claude:"claude-haiku-5-5"};
+try{$("prov").value=localStorage.getItem("vv_prov")||"gemini";$("key").value=localStorage.getItem("vv_key")||""}catch(e){}
+$("prov").onchange=$("key").oninput=()=>{try{localStorage.setItem("vv_prov",$("prov").value);localStorage.setItem("vv_key",$("key").value.trim())}catch(e){}};
+const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(",")[1]);f.readAsDataURL(b)});
+function parse(t){return JSON.parse(t.replace(/```json|```/g,"").trim())}
+async function ask(prompt,blob,prov,key){
+  try{
+    const fd=new FormData();fd.append("image",blob,"snapshot.jpg");fd.append("key",key);
+    const res=await fetch("/api/inspect",{method:"POST",body:fd});
+    if(res.ok)return await res.json();
+  }catch(e){}
+  const img=await b64(blob);let res,d;
+  if(prov==="gemini"){
+    res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+MODELS.gemini+":generateContent",{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:img}}]}],generationConfig:{responseMimeType:"application/json"}})});
+    d=await res.json();if(!res.ok)throw new Error(d.error&&d.error.message||"Gemini request failed");
+    return parse(d.candidates[0].content.parts.map(p=>p.text||"").join(""));
+  }
+  res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:MODELS.claude,max_tokens:800,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:img}},{type:"text",text:prompt}]}]})});
+  d=await res.json();if(!res.ok)throw new Error(d.error&&d.error.message||"Claude request failed");
+  return parse(d.content.map(c=>c.text||"").join(""));
+}
+
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function steps(n){["s1","s2","s3"].forEach((id,i)=>{$(id).className=i<n?"done":i===n?"on":""})}
+function show(b){blob=b;const u=URL.createObjectURL(b);$("stage").innerHTML='<img alt="Breadboard to inspect" src="'+u+'"><div class="scan"></div>';$("go").disabled=false;steps(1);$("out").innerHTML='<p class="meta">Photo captured. Press Inspect.</p>'}
+
+async function shrink(file){
+  const bmp=await createImageBitmap(file),k=Math.min(1,1024/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas");c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(r,"image/jpeg",.85));
+}
+$("file").onchange=async e=>{const f=e.target.files[0];if(f)show(await shrink(f))};
+
+$("demo").onclick=()=>{
+  const c=document.createElement("canvas");c.width=640;c.height=420;const x=c.getContext("2d");
+  x.fillStyle="#d9d4c3";x.fillRect(0,0,640,420);x.fillStyle="#efeadb";x.fillRect(30,40,580,340);
+  x.fillStyle="#c9382b";x.fillRect(40,52,560,4);x.fillStyle="#2a5bd7";x.fillRect(40,62,560,4);
+  x.fillStyle="#2a5bd7";x.fillRect(40,344,560,4);x.fillStyle="#c9382b";x.fillRect(40,354,560,4);
+  x.fillStyle="#8a8470";for(let i=0;i<30;i++)for(let j=0;j<5;j++){x.fillRect(60+i*18,110+j*16,5,5);x.fillRect(60+i*18,230+j*16,5,5)}
+  x.fillStyle="#333";x.fillRect(40,200,560,14);
+  x.strokeStyle="#999";x.lineWidth=3;x.beginPath();x.moveTo(240,150);x.lineTo(240,118);x.moveTo(264,150);x.lineTo(264,118);x.stroke();
+  x.fillStyle="#e23b3b";x.beginPath();x.arc(252,160,22,0,7);x.fill();x.fillStyle="#fff";x.font="12px sans-serif";x.fillText("LED",240,164);
+  x.strokeStyle="#1f8a4c";x.lineWidth=5;x.beginPath();x.moveTo(240,118);x.lineTo(240,60);x.lineTo(120,60);x.stroke();
+  x.strokeStyle="#222";x.beginPath();x.moveTo(264,118);x.lineTo(264,300);x.lineTo(320,350);x.stroke();
+  x.fillStyle="#222";x.fillRect(430,270,120,64);x.fillStyle="#f5b81c";x.font="bold 20px sans-serif";x.fillText("9V",470,310);
+  c.toBlob(b=>show(b),"image/jpeg",.9);
+};
+
+$("go").onclick=async()=>{
+  const out=$("out");
+  const key=$("key").value.trim(),prov=$("prov").value;
+  if(!key){out.innerHTML='<p class="bad">Paste an API key in AI settings first.</p>';return}
+  $("go").disabled=true;$("stage").classList.add("busy");steps(1);out.innerHTML='<p class="meta">Analyzing circuit...</p>';t0=performance.now();
+  const prompt='You are an expert ECE lab TA helping students. Inspect this breadboard photo specifically for clustered, tangled, or wrong wiring (such as reversed polarity, misplaced components, short circuits, or crossed power/ground rails). Reply ONLY with JSON: {"components":[short names],"wiring_density":"clean or clustered/tangled","issues":[each a specific wiring mistake or clustering hazard with exact fix],"speech":"max 3 short encouraging sentences to read aloud to the student"}. If the circuit looks correct, issues is an empty array.';
+  try{
+    const r=await ask(prompt,blob,prov,key);
+    const sec=((performance.now()-t0)/1000).toFixed(1);
+    steps(2);
+    const comp=(r.components||[]).map(esc).join(", ")||"none detected";
+    const density=esc(r.wiring_density||"normal");
+    const iss=(r.issues||[]);
+    out.innerHTML='<h2>Components</h2><p>'+comp+'</p><h2>Wiring Density</h2><p>'+density+'</p><h2>Wiring Faults & Clustering Risks</h2>'+(iss.length?'<ul class="l bad">'+iss.map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul>':'<p class="ok">No wiring faults or clustering risks found.</p>')+'<div class="say">'+esc(r.speech||"")+'</div><p class="meta">Answered in '+sec+' s</p>';
+    if(r.speech&&window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(r.speech);u.onend=()=>steps(3);speechSynthesis.speak(u)}else steps(3);
+  }catch(e){
+    out.innerHTML='<p class="bad">'+esc(e&&e.message?e.message:"Analysis failed.")+' Press Inspect to try again.</p>';steps(1);
+  }
+  $("stage").classList.remove("busy");$("go").disabled=false;
+};
+</script>
+</body>
+</html>

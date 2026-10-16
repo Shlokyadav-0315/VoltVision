@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package voltvision;
+
+// Service definition for VoltVision AI Bench Assistant backend
+service VoltVisionService {
+  // Trigger inspection via physical ESP32 button or web interface
+  rpc InspectCircuit (InspectRequest) returns (InspectResponse);
+}
+
+message InspectRequest {
+  string device_id = 1;
+  bytes image_data = 2; // JPEG/PNG image bytes of the breadboard
+  string mime_type = 3;
+}
+
+message InspectResponse {
+  string status = 1; // "success" or "error"
+  repeated string components = 2; // Detected circuit components
+  repeated string issues = 3; // Wiring mistakes and exact fixes
+  string speech_text = 4; // Short diagnostic message to read aloud
+  float latency_seconds = 5;
+}
