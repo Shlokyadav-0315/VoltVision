@@ -31,7 +31,7 @@ VoltVision is an intelligent bench assistant designed for Electrical & Communica
 
 ### 1. Clone or Open the Project
 ```powershell
-cd c:\Users\shlok\OneDrive\Desktop\Volt_Vision
+cd c:\Users\username\OneDrive\Desktop\Volt_Vision
 ```
 
 ### 2. Install Dependencies
