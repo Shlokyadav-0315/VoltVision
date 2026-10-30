@@ -15,7 +15,7 @@ VoltVision is an intelligent bench assistant designed for Electrical & Communica
 - **Dual Mode (Web App & Hardware)**: 
   - **Web App**: Upload photos directly in your browser.
   - **Hardware Bridge**: Connect an ESP32 board via USB Serial to trigger snapshots with a physical button press.
-- **Free-Tier AI**: Powered by Google Gemini's multimodal vision models.
+- **AI**: Powered by NVIDIA multimodal vision models.
 
 ---
 
@@ -23,7 +23,7 @@ VoltVision is an intelligent bench assistant designed for Electrical & Communica
 
 - **Frontend**: HTML5, CSS3, JavaScript (Responsive dark/light UI with Schibsted Grotesk font)
 - **Backend**: Python, Flask, OpenCV (`cv2`), `pyttsx3` (Text-to-Speech)
-- **AI Vision Engine**: Google Gemini API (`gemini-2.5-flash`)
+- **AI Vision Engine**: NVIDIA Model and Nebius Token factory
 - **Hardware Integration**: ESP32 microcontroller over USB Serial (`pyserial`)
 
 ---
@@ -41,9 +41,9 @@ pip install -r requirements.txt
 ```
 
 ### 3. Run the Web App
-Set your Gemini API key (or paste it directly into the web UI settings):
+Set your API key (or paste it directly into the web UI settings):
 ```powershell
-$env:GEMINI_API_KEY="your_gemini_api_key_here"
+$env:NAME_OF_KEY="your_api_key_here"
 python app.py
 ```
 Open your browser and navigate to **`http://localhost:5000`**.
